@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--配置业务层实现类-->
+    <bean id="accountService" class="org.example.service.AccountServiceImpl"/>
+    <!--配置日志通知(增强)工具对象，交由Spring ioc容器管理-->
+    <bean id="logger" class="org.example.utils.LogUtils"/>
+    <!--
+    <aop:config>标签作用：配置AOP
+    -->
+    <aop:config>
+        <!--
+        <aop:aspect> 标签作用：配置切面
+        id属性：设置当前切面的唯一标识
+        ref属性：指定当前切面的增强类(日志增强工具类)
+        -->
+        <aop:aspect id="loggerAdvice" ref="logger">
+            <!-- 配置 通知.... -->
+            <!--
+            配置前置增强：在方法执行前执行
+            method属性：前置增强调用日志增强工具类中的那个方法。
+            pointcut属性：配置切入点，也就是对那个方法进行增强。
+            -->
+            <aop:before method="beforePrintLog"
+                        pointcut="execution(public * org.example.service.AccountServiceImpl.*(..))"/>
+
+            <!--
+            配置配置后置通知：在方法执行完毕之后执行(即便抛出异常还是执行)
+            -->
+            <aop:after-returning method="afterReturnPrintLog" pointcut-ref="logPointcut"/>
+
+            <!--
+            配置异常通知增强：在方法抛出异常后执行
+            -->
+            <aop:after-throwing method="afterThrowingPrintLog" pointcut-ref="logPointcut"/>
+
+            <!--
+            配置最终通知增强：在方法执行后执行
+            -->
+            <aop:after method="afterPrintLog"
+                       pointcut="execution(public * org.example.service.AccountServiceImpl.*(..))"/>
+
+            <!--配置环绕通知-->
+            <aop:around method="aroundPrintLog" pointcut-ref="logPointcut"/>
+
+            <!--
+            配置切入点
+            -->
+            <aop:pointcut id="logPointcut"
+                          expression="execution(public * org.example.service.AccountServiceImpl.*(..))"/>
+
+        </aop:aspect>
+    </aop:config>
+</beans>
